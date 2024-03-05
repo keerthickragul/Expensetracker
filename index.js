@@ -4,16 +4,19 @@
 const bodyParser = require('body-parser')
 const express = require('express')
 const app = express()
+const cors = require('cors')
 app.use(bodyParser.json())
+app.use(cors())
 const mongoose = require('mongoose') 
 const {Expense} = require('./schema.js')
-const port = 8000
+const port = process.env.PORT || 8000
 async function connectToDb(){
    try{
     await mongoose.connect('mongodb+srv://keerthickragulr2022cse:ragul418026@ragul.y3vchqn.mongodb.net/ExpenseTracker?retryWrites=true&w=majority')
     console.log('DB connection established...')
     app.listen(port,function(){
         console.log(`Listening on port ${port}`)
+    
     })
    }
    catch(err){
@@ -46,11 +49,11 @@ catch(err){
     })
 }
 })
-
-app.get('/get-expenses',async function(request,response){
+//display
+app.get('/getexpenses',async function(request,response){
     try{
-        const expenseData=await Expense.find()
-        express.response.status.apply(200).json(expenseData)
+        const expenseData = await Expense.find()
+        response.status.apply(200).json(expenseData)
     }catch(error){
         response.status(500).json({
             "status":"failure",
@@ -59,3 +62,56 @@ app.get('/get-expenses',async function(request,response){
         })
     }
 })
+
+app.delete('/delete-expense/:id',async (request,response)=>{
+    try{
+        const expenseid = await Expense.findById(request.params.id)
+        console.log(expenseid)
+        if(expenseid){
+            
+            await Expense.findByIdAndDelete(expenseid)
+            response.status(200).json({
+                "status":"success",
+                "message":"deleted an entry"
+            })
+        }
+        else{
+            response.status(404).json({
+                "status":"failed",
+                "message":"file not found"
+            })
+        }
+    }
+    catch(error){
+        response.status(500).json({
+            "status":"failed",
+            "message":"internal error"
+        })
+    }})
+
+    app.patch('/edit-expense/:id',async function(request,response){
+        try{
+            const edit=await Expense.findById(request.params.id)
+            if(edit){
+                await Expense.updateOne({
+                    "amount":request.body.amount,
+                    "category":request.body.category,
+                    "date":request.body.date
+                })
+                console.log("Edited")
+                response.status(200).json({
+                    "status":"success"
+                })
+            }
+
+
+            else{
+                response.status(404).json({
+                    "status":"failed"
+                })
+            }
+        }
+        catch(error){
+            console.log("error")
+        }
+    })

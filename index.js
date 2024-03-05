@@ -52,8 +52,10 @@ catch(err){
 //display
 app.get('/getexpenses',async function(request,response){
     try{
+        console.log("check1")
         const expenseData = await Expense.find()
-        response.status.apply(200).json(expenseData)
+        console.log("check2")
+        response.status(200).json(expenseData)
     }catch(error){
         response.status(500).json({
             "status":"failure",
